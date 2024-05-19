@@ -12,7 +12,6 @@ const userSchema=new Schema({
     lastName:{
         type:String,
         required:true,
-        unique:true,
         trim:true,
         index:true, //makes optimised for searching  username
     },
@@ -33,6 +32,7 @@ const userSchema=new Schema({
     },
     mobile:{
         type:Number,
+        unique:true,
         trim:true,
     },
 },{timestamps:true})

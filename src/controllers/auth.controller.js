@@ -12,11 +12,11 @@ const generateAccessAndRefreshTokens = async (userId) => {
     user.refreshToken = refreshToken; //we can change current database detail by database instance
     await user.save({ validateBeforeSave: false }); //to save the changes on instance and validateBeforeSave tells the code
     //that not to follow validations (required and other requirements of model but just save the changed data)
-    console.log(
-      "Access and refresh Token at generation function:",
-      accessToken,
-      refreshToken
-    );
+    // console.log(
+    //   "Access and refresh Token at generation function:",
+    //   accessToken,
+    //   refreshToken
+    // );
     return { accessToken, refreshToken };
   } catch (error) {
     throw new ApiError(
@@ -26,32 +26,23 @@ const generateAccessAndRefreshTokens = async (userId) => {
   }
 };
 
-const existedUser = await User.findOne(email);
-
-if (existedUser) {
-  throw new ApiError(401, "Username or email has already been taken");
-}
-
 const completeRegistration = asyncHandler(async (req, res) => {
   try {
     console.log("On complete registration");
     const { firstName, lastName, email, mobile, password } = req.body;
-
     if (
-      [firstName, lastName, email, mobile, password].some((field) =>
-        field?.trim()
-      ) === ""
+      ![firstName, lastName, email, mobile, password].every(
+        (field) => typeof field === "string" && field.trim() !== ""
+      )
     ) {
-      //The some function is used to check if at least one element in the array satisfies the provided condition.
-      //here if any of the fields equals '' then it throws error
-      throw new ApiError(400, "No fields can't be empty");
+      throw new ApiError(400, "All fields are required");
     }
-    const existedUser = await User.findOne(email);
 
+    const existedUser = await User.findOne({ $or: [{ email }, { mobile }] });
     if (existedUser) {
-      throw new ApiError(401, "Username or email has already been taken");
+      throw new ApiError(401, "Email or mobile has already been taken");
     }
-
+    let updatedUser;
     try {
       updatedUser = await User.create({
         firstName,
@@ -106,14 +97,13 @@ const LoginUser = asyncHandler(async (req, res) => {
   }
 
   //find user by  email
-  const user =
-    (await Donor.findOne({
-      email,
-    })) || (await Distributor.findOne({ email }));
+  const user = await User.findOne({
+    email,
+  });
 
   console.log("user:", user);
   if (!user) {
-    throw new ApiError(400, "user with this email doesn't exists");
+    throw new ApiError(400, "User with this email doesn't exists");
   }
 
   //check password
@@ -126,16 +116,12 @@ const LoginUser = asyncHandler(async (req, res) => {
   //to send data without password and refreshToken
   let apiResultUser;
   apiResultUser =
-    (await Donor.findOne({
+    (await User.findOne({
       email,
     })
       .select("-password -refreshToken")
-      .lean()) ||
-    (await Distributor.findOne({
-      email,
-    })
-      .select("-password -refreshToken")
-      .lean());
+      .lean());      //lean method  instruct Mongoose to return a plain JavaScript object instead of a Mongoose document. This can be beneficial in terms of performance because it reduces the processing overhead associated with Mongoose documents.
+      // When to Use lean()
 
   //Generate  Access and refresh token
   const { accessToken, refreshToken } = await generateAccessAndRefreshTokens(
@@ -171,7 +157,8 @@ const LoginUser = asyncHandler(async (req, res) => {
 });
 
 const LogoutUser = asyncHandler((req, res) => {
-  User.findByIdAndUpdate(     //capital User for database communication and small user as instance to get methods defined under user model
+  User.findByIdAndUpdate(
+    //capital User for database communication and small user as instance to get methods defined under user model
     req.user._id, //user sent by verifyJWT middleware
     {
       $set: {
@@ -181,7 +168,7 @@ const LogoutUser = asyncHandler((req, res) => {
     {
       new: true, //when refreshToken is set then when retrieved data from here as const user= then give new data
     }
-  )
+  );
   //set cookies on browser to undefined
   const options = {
     //only modifyable by server not by browser by anyone
