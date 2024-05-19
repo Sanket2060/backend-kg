@@ -78,7 +78,7 @@ const completeRegistration = asyncHandler(async (req, res) => {
       .status(200)
       .cookie("accessToken", accessToken, options)
       .cookie("refreshToken", refreshToken, options)
-      .json(new ApiResponse(200, finalUser, "User  created successfully"));
+      .json(new ApiResponse(200,finalUser, "User  created successfully"));
   } catch (error) {
     console.log(`Error somewhere at complete registration: ${error}`);
     throw new ApiError(
@@ -182,4 +182,11 @@ const LogoutUser = asyncHandler((req, res) => {
     .json(new ApiResponse(200, {}, "User logged out sucessfully"));
 });
 
-export { completeRegistration, LoginUser, LogoutUser };
+const getUserDetails=asyncHandler((req,res)=>{
+  const user=req.user;
+  
+  throw new ApiResponse(200,user,"User data retrieved sucessfully");
+  
+})
+
+export { completeRegistration, LoginUser, LogoutUser,getUserDetails };

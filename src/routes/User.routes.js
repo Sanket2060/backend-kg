@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { completeRegistration,LoginUser,LogoutUser } from "../controllers/auth.controller.js";
+import { completeRegistration,LoginUser,LogoutUser,getUserDetails } from "../controllers/auth.controller.js";
 import { verifyJWT } from "../middlewares/auth.middleware.js";
 
   const router=Router();
@@ -9,9 +9,9 @@ import { verifyJWT } from "../middlewares/auth.middleware.js";
   router.route('/login').post(LoginUser);
   
   
-  
   //   //secured routes Why secured??
   //   router.route('/logout').post(verifyJWT,LogoutUser);
+  router.route('/getUserDetails').get(verifyJWT,getUserDetails); 
   router.route('/logout').post(verifyJWT,LogoutUser);
   
 
