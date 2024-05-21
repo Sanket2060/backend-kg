@@ -136,7 +136,7 @@ const LoginUser = asyncHandler(async (req, res) => {
   //send cookie
   const options = {
     //only modifyable by server not by browser by anyone
-    httpOnly: true,
+    httpOnly: false,
     secure: true,
   };
 
@@ -184,8 +184,11 @@ const LogoutUser = asyncHandler((req, res) => {
 
 const getUserDetails=asyncHandler((req,res)=>{
   const user=req.user;
-  
-  throw new ApiResponse(200,user,"User data retrieved sucessfully");
+  res.
+  status(200)
+  .json(
+   new ApiResponse(200,user,"User data retrieved sucessfully")
+  )
   
 })
 
